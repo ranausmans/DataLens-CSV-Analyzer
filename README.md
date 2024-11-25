@@ -32,7 +32,7 @@ Frontend:
 Getting Started 🚀
 ----------------
 1. Clone the repository:
-   git clone https://github.com/yourusername/datalens.git
+   git clone [https://github.com/ranausmans/datalens.git](https://github.com/ranausmans/DataLens-CSV-Analyzer.git)
    cd datalens
 
 2. Create and activate virtual environment:

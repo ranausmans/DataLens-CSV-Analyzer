@@ -1,1 +1,327 @@
-d
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataLens AI</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #3b82f6;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .ai-insights {
+            color: #1f2937;
+            font-size: 1rem;
+            line-height: 1.6;
+            padding: 1rem;
+        }
+
+        .ai-insights h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e40af;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #bfdbfe;
+            letter-spacing: -0.025em;
+        }
+
+        .ai-insights ul {
+            list-style-type: disc;
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .ai-insights li {
+            color: #374151;
+            margin-bottom: 0.75rem;
+            line-height: 1.5;
+        }
+
+        .ai-insights p {
+            color: #374151;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        /* Add styles for the visualizations */
+        .visualization-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .plotly-graph {
+            width: 100%;
+            height: 400px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-8 text-blue-800">DataLens AI</h1>
+        
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <form id="uploadForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Upload CSV File</label>
+                    <input type="file" accept=".csv,.xlsx,.xls" id="csvFile" 
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                </div>
+                <button type="submit" 
+                        class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+                    Analyze
+                </button>
+            </form>
+        </div>
+
+        <!-- Add loading indicator -->
+        <div id="loading" class="hidden">
+            <div class="loader"></div>
+            <p class="text-center text-gray-600">Analyzing your CSV file...</p>
+        </div>
+
+        <div id="results" class="space-y-6 hidden">
+            <div class="flex justify-end mb-4">
+                <button onclick="exportToPDF()" 
+                        class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Export to PDF
+                </button>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-4">AI Insights</h2>
+                <div id="aiInsights" class="prose ai-insights"></div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-4">Basic Statistics</h2>
+                <div id="basicStats" class="overflow-x-auto"></div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-4">Visualizations</h2>
+                <div id="visualizations" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-12 py-6 text-center text-gray-600 border-t border-gray-200">
+            <p class="mb-2">Built by Rana Usman</p>
+            <div class="flex justify-center space-x-4">
+                <a href="mailto:ranausman@outlook.com" class="hover:text-blue-600 flex items-center">
+                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    ranausman@outlook.com
+                </a>
+                <a href="https://github.com/ranausmans" target="_blank" class="hover:text-blue-600 flex items-center">
+                    <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                        <path fill-rule="evenodd" 
+                            d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" 
+                            clip-rule="evenodd" />
+                    </svg>
+                    github.com/ranausmans
+                </a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        function exportToPDF() {
+            // Show loading state
+            const exportBtn = document.querySelector('button[onclick="exportToPDF()"]');
+            const originalText = exportBtn.innerHTML;
+            exportBtn.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Generating PDF...
+            `;
+            exportBtn.disabled = true;
+
+            // Wait for plots to be fully rendered
+            setTimeout(() => {
+                const element = document.getElementById('results');
+                const opt = {
+                    margin: 1,
+                    filename: 'DataLens-Analysis.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { 
+                        scale: 2,
+                        useCORS: true,
+                        logging: false
+                    },
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                };
+
+                html2pdf().set(opt).from(element).save()
+                    .then(() => {
+                        // Restore button state
+                        exportBtn.innerHTML = originalText;
+                        exportBtn.disabled = false;
+                    })
+                    .catch(err => {
+                        console.error('PDF generation failed:', err);
+                        alert('Failed to generate PDF. Please try again.');
+                        exportBtn.innerHTML = originalText;
+                        exportBtn.disabled = false;
+                    });
+            }, 1000); // Give time for all visualizations to render
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fileInput = document.getElementById('csvFile');
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            // Show loading indicator and hide results
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('results').classList.add('hidden');
+
+            try {
+                const response = await fetch('/datalens/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+                console.log('Response status:', response.status);
+                console.log('Response headers:', Object.fromEntries(response.headers));
+                
+                // Get the raw response text first
+                const responseText = await response.text();
+                console.log('Raw response:', responseText);
+                
+                // Try to parse it as JSON
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (e) {
+                    console.error('JSON parsing failed:', e);
+                    throw new TypeError('Invalid JSON response: ' + responseText.substring(0, 100));
+                }
+                
+                console.log('Parsed data:', data);
+                
+                if (response.ok) {
+                    displayResults(data);
+                } else {
+                    console.error('Server error:', data);
+                    alert(`Server Error: ${data.error || 'Unknown error occurred'}`);
+                }
+            } catch (error) {
+                console.error('Client error:', error);
+                if (error instanceof TypeError && error.message === "Response was not JSON") {
+                    alert('Server returned an invalid response. Please try again.');
+                } else {
+                    alert(`Network Error: ${error.message}\nPlease check the console for more details.`);
+                }
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        });
+
+        function displayResults(data) {
+            document.getElementById('results').classList.remove('hidden');
+            
+            // Format the AI insights
+            const formattedInsights = data.ai_insights
+                .split('\n')
+                .map(line => {
+                    line = line.trim();
+                    if (line.startsWith('##')) {  // Section headers
+                        return `<h2 class="text-xl font-bold text-blue-800 mt-6 mb-4 border-b-2 border-blue-200 pb-2">
+                            ${line.replace('##', '').trim()}
+                        </h2>`;
+                    } else if (line.startsWith('- ')) {  // List items
+                        return `<li class="text-gray-700 ml-6 mb-2">${line.substring(2)}</li>`;
+                    } else if (line) {  // Regular text
+                        return `<p class="text-gray-700 mb-2">${line}</p>`;
+                    }
+                    return '';
+                })
+                .join('')
+                .replace(/<li>/g, '<ul class="list-disc mb-4">\n<li>')  // Start lists
+                .replace(/(<\/li>)(?!\s*<li>)/g, '$1\n</ul>');  // End lists
+
+            document.getElementById('aiInsights').innerHTML = formattedInsights;
+            
+            // Display Basic Stats
+            const statsHtml = `
+                <table class="min-w-full">
+                    <thead>
+                        <tr>
+                            ${Object.keys(data.basic_stats).map(col => 
+                                `<th class="px-4 py-2 bg-gray-50">${col}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Object.entries(data.basic_stats[Object.keys(data.basic_stats)[0]]).map(([index, _]) => 
+                            `<tr>
+                                ${Object.keys(data.basic_stats).map(col => 
+                                    `<td class="border px-4 py-2">${data.basic_stats[col][index]}</td>`
+                                ).join('')}
+                            </tr>`
+                        ).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('basicStats').innerHTML = statsHtml;
+
+            // Display Visualizations
+            const vizContainer = document.getElementById('visualizations');
+            vizContainer.innerHTML = '';
+            data.visualizations.forEach((viz, index) => {
+                const card = document.createElement('div');
+                card.className = 'visualization-card';
+                
+                const graphDiv = document.createElement('div');
+                graphDiv.id = `viz-${index}`;
+                graphDiv.className = 'plotly-graph';
+                
+                card.appendChild(graphDiv);
+                vizContainer.appendChild(card);
+                
+                Plotly.newPlot(
+                    `viz-${index}`, 
+                    viz.data.data, 
+                    {
+                        ...viz.data.layout,
+                        margin: { t: 30, r: 10, b: 30, l: 60 },
+                        height: 400,
+                        paper_bgcolor: 'transparent',
+                        plot_bgcolor: 'transparent',
+                        font: { family: 'system-ui' }
+                    },
+                    { responsive: true }
+                );
+            });
+        }
+    </script>
+</body>
+</html> 

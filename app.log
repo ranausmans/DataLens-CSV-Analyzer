@@ -1,0 +1,6 @@
+2024-11-25 16:51:48,101 - analyzer - INFO - Initializing EnhancedCSVAnalyzer
+2024-11-25 16:51:48,118 - analyzer - INFO - Successfully initialized Gemini model
+2024-11-25 16:51:48,118 - __main__ - INFO - Successfully initialized EnhancedCSVAnalyzer
+2024-11-25 16:56:21,220 - analyzer - INFO - Initializing EnhancedCSVAnalyzer
+2024-11-25 16:56:21,230 - analyzer - INFO - Successfully initialized Gemini model
+2024-11-25 16:56:21,230 - __main__ - INFO - Successfully initialized EnhancedCSVAnalyzer
